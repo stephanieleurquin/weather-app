@@ -85,6 +85,18 @@ db_path = os.path.join(base_dir, "meteo.db")
 
 conn = sqlite3.connect(db_path, check_same_thread=False)
 cursor = conn.cursor()
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS meteo (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ville TEXT,
+    temperature REAL,
+    vent REAL,
+    pluie REAL,
+    date TEXT
+)
+""")
+
+conn.commit()
 
 cursor.execute("""
 INSERT INTO meteo (ville, temperature, vent, pluie, date)
