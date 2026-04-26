@@ -3,7 +3,7 @@ import sqlite3
 import requests
 import pandas as pd
 from datetime import datetime
-import pytz
+from datetime import timezone
 import os
 
 # ======================
