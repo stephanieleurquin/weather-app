@@ -3,6 +3,7 @@ import sqlite3
 import requests
 import pandas as pd
 from datetime import datetime
+import pytz
 import os
 
 # ======================
@@ -18,7 +19,7 @@ def weather_summary(temp, wind, rain):
     return "🌤️ Temps stable"
 
 # ======================
-# 🌤️ UI
+# 🌤️ TITRE
 # ======================
 st.title("🌤️ Météo Live PRO")
 
@@ -53,19 +54,27 @@ def get_weather(lat, lon):
 
 data = get_weather(lat, lon)
 
-# ======================
-# 🌡️ CURRENT WEATHER
-# ======================
 current = data["current_weather"]
 
+# ======================
+# 🕒 HORLOGES FIXÉES
+# ======================
+tz = pytz.timezone("Europe/Brussels")
+
+api_time = datetime.fromisoformat(current["time"])
+local_time = datetime.now(tz)
+
+st.write("🕒 Heure API :", api_time.strftime("%Y-%m-%d %H:%M:%S"))
+st.write("🕒 Heure locale :", local_time.strftime("%Y-%m-%d %H:%M:%S"))
+
+# ======================
+# 🌡️ METEO ACTUELLE
+# ======================
 st.metric("🌡️ Température", f"{current['temperature']} °C")
 st.metric("💨 Vent", f"{current['windspeed']} km/h")
 
-st.write("🕒 Heure API :", current["time"].replace("T", " "))
-st.write("🕒 Heure locale :", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-
 # ======================
-# 📊 DATAFRAME PREVISIONS
+# 📊 PREVISIONS
 # ======================
 df = pd.DataFrame({
     "date": data["daily"]["time"],
@@ -78,11 +87,13 @@ df = pd.DataFrame({
 # 🧠 ANALYSE
 # ======================
 st.subheader("🧠 Analyse météo")
+
 summary = weather_summary(
     current["temperature"],
     current["windspeed"],
     df["pluie"].iloc[0]
 )
+
 st.success(summary)
 
 # ======================
@@ -107,9 +118,9 @@ CREATE TABLE IF NOT EXISTS meteo (
 conn.commit()
 
 # ======================
-# 💾 SAUVEGARDE (ANTI DOUBLON)
+# 💾 SAUVEGARDE ANTI DOUBLON
 # ======================
-key = f"saved_{city}_{current['time']}"
+key = f"{city}_{current['time']}"
 
 if key not in st.session_state:
     cursor.execute("""
@@ -126,7 +137,7 @@ if key not in st.session_state:
     st.session_state[key] = True
 
 # ======================
-# 📊 HISTORIQUE (FIX BUG PARIS)
+# 📊 HISTORIQUE (FIXÉ)
 # ======================
 st.subheader(f"📊 Historique météo - {city}")
 
