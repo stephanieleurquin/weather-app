@@ -1,3 +1,4 @@
+
 import streamlit as st
 import sqlite3
 import requests
@@ -58,7 +59,7 @@ st.write("🕒 Heure API :", current["time"].replace("T", " "))
 st.write("🕒 Heure locale :", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
 # ======================
-# 🧠 ANALYSE METEO (AJOUT PROPRE)
+# 🧠 ANALYSE METEO
 # ======================
 st.subheader("🧠 Analyse météo")
 
@@ -85,6 +86,8 @@ db_path = os.path.join(base_dir, "meteo.db")
 
 conn = sqlite3.connect(db_path, check_same_thread=False)
 cursor = conn.cursor()
+
+# Création table
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS meteo (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -95,10 +98,9 @@ CREATE TABLE IF NOT EXISTS meteo (
     date TEXT
 )
 """)
-
 conn.commit()
 
-cursor.execute("""
+# Insertion sécurisée (évite doublons)
 if "data_saved" not in st.session_state:
     cursor.execute("""
     INSERT INTO meteo (ville, temperature, vent, pluie, date)
@@ -110,20 +112,17 @@ if "data_saved" not in st.session_state:
         df["pluie"].iloc[0],
         current["time"]
     ))
-    
     conn.commit()
     st.session_state.data_saved = True
-INSERT INTO meteo (ville, temperature, vent, pluie, date)
-VALUES (?, ?, ?, ?, ?)
-""", (
-    city,
-    current["temperature"],
-    current["windspeed"],
-    df["pluie"].iloc[0],
-    current["time"]
-))
 
-conn.commit()
+# ======================
+# 📊 HISTORIQUE (BONUS)
+# ======================
+st.subheader("📊 Historique météo")
+
+historique = pd.read_sql_query("SELECT * FROM meteo ORDER BY id DESC", conn)
+st.dataframe(historique)
+
 conn.close()
 
 # ======================
