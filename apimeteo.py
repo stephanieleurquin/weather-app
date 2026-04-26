@@ -59,7 +59,6 @@ current = data["current_weather"]
 # ======================
 # 🕒 HORLOGES FIXÉES
 # ======================
-tz = pytz.timezone("Europe/Brussels")
 
 api_time = datetime.fromisoformat(current["time"])
 local_time = datetime.now(tz)
