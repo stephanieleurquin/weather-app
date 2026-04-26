@@ -3,7 +3,7 @@ import sqlite3
 import requests
 import pandas as pd
 from datetime import datetime
-from datetime import timezone
+import zoneinfo
 import os
 
 # ======================
@@ -53,15 +53,13 @@ def get_weather(lat, lon):
     return requests.get(url).json()
 
 data = get_weather(lat, lon)
-
 current = data["current_weather"]
 
 # ======================
-# 🕒 HORLOGES FIXÉES
+# 🕒 HEURES (FIX PROPRE)
 # ======================
-
 api_time = datetime.fromisoformat(current["time"])
-local_time = datetime.now(tz)
+local_time = datetime.now(zoneinfo.ZoneInfo("Europe/Brussels"))
 
 st.write("🕒 Heure API :", api_time.strftime("%Y-%m-%d %H:%M:%S"))
 st.write("🕒 Heure locale :", local_time.strftime("%Y-%m-%d %H:%M:%S"))
@@ -73,7 +71,7 @@ st.metric("🌡️ Température", f"{current['temperature']} °C")
 st.metric("💨 Vent", f"{current['windspeed']} km/h")
 
 # ======================
-# 📊 PREVISIONS
+# 📊 PRÉVISIONS
 # ======================
 df = pd.DataFrame({
     "date": data["daily"]["time"],
@@ -117,7 +115,7 @@ CREATE TABLE IF NOT EXISTS meteo (
 conn.commit()
 
 # ======================
-# 💾 SAUVEGARDE ANTI DOUBLON
+# 💾 SAUVEGARDE (ANTI DOUBLON PROPRE)
 # ======================
 key = f"{city}_{current['time']}"
 
@@ -136,7 +134,7 @@ if key not in st.session_state:
     st.session_state[key] = True
 
 # ======================
-# 📊 HISTORIQUE (FIXÉ)
+# 📊 HISTORIQUE
 # ======================
 st.subheader(f"📊 Historique météo - {city}")
 
@@ -149,7 +147,7 @@ historique = pd.read_sql_query(
 st.dataframe(historique)
 
 # ======================
-# 📅 PREVISIONS
+# 📅 PRÉVISIONS
 # ======================
 st.subheader("📅 Prévisions 7 jours")
 st.dataframe(df)
