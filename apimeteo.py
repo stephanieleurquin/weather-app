@@ -99,6 +99,20 @@ CREATE TABLE IF NOT EXISTS meteo (
 conn.commit()
 
 cursor.execute("""
+if "data_saved" not in st.session_state:
+    cursor.execute("""
+    INSERT INTO meteo (ville, temperature, vent, pluie, date)
+    VALUES (?, ?, ?, ?, ?)
+    """, (
+        city,
+        current["temperature"],
+        current["windspeed"],
+        df["pluie"].iloc[0],
+        current["time"]
+    ))
+    
+    conn.commit()
+    st.session_state.data_saved = True
 INSERT INTO meteo (ville, temperature, vent, pluie, date)
 VALUES (?, ?, ?, ?, ?)
 """, (
